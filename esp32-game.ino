@@ -1,8 +1,6 @@
 /*
-  SKIBIDI GAME - TEST BUILD v2 (FIXED BUILD)
+  SKIBIDI GAME - TEST BUILD v2 (FIXED ST7735 WHITE SCREEN)
   ESP32 + ST7735 1.77" (128x160)
-
-  Đã fix lỗi build GitHub Actions (Đổi TX/RX thành GPIO 1/3)
 */
 
 #include <Adafruit_GFX.h>
@@ -35,9 +33,8 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 #define BTN_SKILL5      16
 #define BTN_SKILL6      17
 
-// Đã sửa TX -> 1, RX -> 3 để GitHub Actions biên dịch không bị lỗi
-#define BTN_A           1   // chân TX0 - nút đấm
-#define BTN_B           3   // chân RX0 - chưa dùng
+#define BTN_A           1   // GPIO 1 (TX0)
+#define BTN_B           3   // GPIO 3 (RX0)
 
 // ===================== MÀU SẮC =====================
 #define COL_BG       ST77XX_WHITE
@@ -138,6 +135,15 @@ void setup() {
   WiFi.mode(WIFI_OFF);
   btStop();
 
+  // Reset cứng màn hình qua phần cứng trước khi khởi tạo
+  pinMode(TFT_RST, OUTPUT);
+  digitalWrite(TFT_RST, HIGH);
+  delay(10);
+  digitalWrite(TFT_RST, LOW);
+  delay(10);
+  digitalWrite(TFT_RST, HIGH);
+  delay(10);
+
   pinMode(BTN_UP, INPUT_PULLUP);
   pinMode(BTN_DOWN, INPUT_PULLUP);
   pinMode(BTN_LEFT, INPUT_PULLUP);
@@ -150,7 +156,8 @@ void setup() {
   pinMode(BTN_A, INPUT_PULLUP);
   pinMode(BTN_B, INPUT_PULLUP);
 
-  tft.initR(INITR_BLACKTAB);
+  // Đổi sang INTI_GREENTAB - Khắc phục màn hình trắng cho ST7735 1.77"
+  tft.initR(INITR_GREENTAB); 
   tft.setRotation(2);
   tft.fillScreen(COL_BG);
   drawFrame();
@@ -214,11 +221,11 @@ void drawCharacter(float x, float y, float fx, float fy, bool isPunching, uint8_
   }
 
   int16_t rfx = (int16_t)(rightIdleX + fx * extendR) - FIST_SIZE / 2;
-  int16_t rfy = (int16_t)(rightIdleY + fy * extendR) - FIST_SIZE / 2;
+  int16_t rfy = (int16_t)(rightIdleY + fx * extendR) - FIST_SIZE / 2;
   tft.fillRect(rfx, rfy, FIST_SIZE, FIST_SIZE, COL_BODY_DK);
 
   int16_t lfx = (int16_t)(leftIdleX + fx * extendL) - FIST_SIZE / 2;
-  int16_t lfy = (int16_t)(leftIdleY + fy * extendL) - FIST_SIZE / 2;
+  int16_t lfy = (int16_t)(leftIdleY + fx * extendL) - FIST_SIZE / 2;
   tft.fillRect(lfx, lfy, FIST_SIZE, FIST_SIZE, COL_BODY_DK);
 }
 
